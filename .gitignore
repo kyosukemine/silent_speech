@@ -1,2 +1,12 @@
 emg_data
+deepspeech-0.7.0-models.pbmm
+deepspeech-0.7.0-models.scorer
+__pycache__
+evaluation_output
 
+models/transduction_model/*.wav
+text_alignments/**/*.TextGrid
+models
+pretrained_models
+hifigan_finetuned
+text_alignments

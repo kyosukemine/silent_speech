@@ -17,7 +17,7 @@ from align import align_from_distances
 from asr_evaluation import evaluate
 from data_utils import phoneme_inventory, decollate_tensor, combine_fixed_length
 from vocoder import Vocoder
-
+from tqdm import tqdm
 from absl import flags
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('batch_size', 32, 'training batch size')
@@ -34,7 +34,7 @@ flags.DEFINE_string('output_directory', 'output', 'output directory')
 def test(model, testset, device):
     model.eval()
 
-    dataloader = torch.utils.data.DataLoader(testset, batch_size=32, collate_fn=testset.collate_raw)
+    dataloader = torch.utils.data.DataLoader(testset, batch_size=FLAGS.batch_size, collate_fn=testset.collate_raw)
     losses = []
     accuracies = []
     phoneme_confusion = np.zeros((len(phoneme_inventory),len(phoneme_inventory)))
@@ -168,7 +168,7 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
 
     n_phones = len(phoneme_inventory)
     model = Model(devset.num_features, devset.num_speech_features, n_phones).to(device)
-
+    model = torch.nn.DataParallel(model)
     if FLAGS.start_training_from is not None:
         state_dict = torch.load(FLAGS.start_training_from)
         model.load_state_dict(state_dict, strict=False)
@@ -192,7 +192,7 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
     seq_len = 200
 
     batch_idx = 0
-    for epoch_idx in range(n_epochs):
+    for epoch_idx in tqdm(range(n_epochs)):
         losses = []
         for batch in dataloader:
             optim.zero_grad()
@@ -245,6 +245,7 @@ def main():
     logging.info('train / dev split: %d %d',len(trainset),len(devset))
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = 'cpu'
 
     model = train_model(trainset, devset, device, save_sound_outputs=(FLAGS.hifigan_checkpoint is not None))
 
