@@ -10,3 +10,4 @@ models
 pretrained_models
 hifigan_finetuned
 text_alignments
+hifi_gan
