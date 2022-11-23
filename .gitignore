@@ -10,3 +10,11 @@ models
 pretrained_models
 hifigan_finetuned
 text_alignments
+data_collection/out
+data_collection/books/War_of_the_Worlds.txt.bookmark
+data_collection/books/War_of_the_Worlds_raw.txt
+data_collection/books/War_of_the_Worlds.txt
+data_collection/books/Sherlock_Holmes.txt
+data_collection/books/Sherlock_Holmes_raw.txt
+data_collection/books/ita-corpus-main/*
+data_collection/books/ita-corpus-main.zip
