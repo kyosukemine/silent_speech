@@ -60,7 +60,7 @@ def get_last_sequence(chunk_list, n, k, do_filtering, fs):
 
 
 class Recorder(object):
-    def __init__(self, debug=False, display=True, num_channels=None, wifi=True):
+    def __init__(self, debug=False, display=True, num_channels=8, wifi=True):
         # make audio stream
 
         self.queue_audio = queue.Queue()
@@ -80,7 +80,7 @@ class Recorder(object):
         # make emg stream
 
         # self.queue_EMG = queue.Queue()
-        self.emg_channels = 2
+        self.emg_channels = num_channels
         self.EMG_strem = gd.InputStream(channnels=self.emg_channels)
 
         # params = BrainFlowInputParams()
@@ -129,7 +129,7 @@ class Recorder(object):
             emg_ax.axis((0, window, -300, 300))
             audio_lines = audio_ax.plot(np.zeros(window*audio_multiplier))
             emg_lines = emg_ax.plot(np.zeros((window, self.emg_channels)))
-            for l, c in zip(emg_lines, ['grey', 'mediumpurple']):  # , 'blue', 'green', 'yellow', 'orange', 'red', 'sienna']):
+            for l, c in zip(emg_lines, ['grey', 'mediumpurple', 'blue', 'green', 'yellow', 'orange', 'red', 'sienna']):
                 l.set_color(c)
             text = emg_ax.text(50, -250, 'RMS: 0')
 
@@ -157,6 +157,10 @@ class Recorder(object):
             self.ani = FuncAnimation(fig, update_plot, interval=10)
 
     def update(self):
+        '''
+        time until data is filled by gtec > audio
+
+        '''
         time1 = time.time()
         if self.display:
             # next two lines seem to be a better alternative to plt.pause(0.005)
@@ -166,11 +170,27 @@ class Recorder(object):
         else:
             time.sleep(0.005)
 
+        current_emg = []
+        _data = self.EMG_strem.q_data.get()
+        current_emg.append(_data.T)
+        # if not self.EMG_strem.q_data.empty():
+        #     _data = self.EMG_strem.q_data.get()
+        #     current_emg.append(_data.T)
+        # print(current_emg)
+        # while True:  # 9 µsec
+        #     try:
+        #         _data = self.EMG_strem.q_data.get_nowait()
+        #         # self.emg_data
+        #         current_emg.append(_data.T)
+        #         # self.cnt += 1
+        #     except queue.Empty:
+        #         break
+
         current_audio = []
         # for _ in range(self.queue_audio.qsize()):
         #     current_audio.append(self.queue_audio.get_nowait())
         #     # print(current_audio[-1])
-        while True:
+        while True:  # 40 μsec
             try:
                 _data = self.queue_audio.get_nowait()
                 # self.emg_data
@@ -178,60 +198,59 @@ class Recorder(object):
                 # self.cnt += 1
             except queue.Empty:
                 break
-        
-        current_emg = []
-        # if not self.EMG_strem.q_data.empty():
-        #     _data = self.EMG_strem.q_data.get()
-        #     current_emg.append(_data.T)
-        # print(current_emg)
-        while True:
-            try:
-                _data = self.EMG_strem.q_data.get_nowait()
-                # self.emg_data
-                current_emg.append(_data.T)
-                # self.cnt += 1
-            except queue.Empty:
-                break
-        print(time.time()-time1)
 
         if len(current_audio) > 0:
             self.audio_data.append(np.concatenate(current_audio, 0))
         # print(current_emg)
-        print(len(current_emg)>0)
-        print(len(current_emg))
+        # print(len(current_emg) > 0)
+        # print(current_emg[0])
         if len(current_emg) > 0:
             # data = self.board.get_board_data() # get all data and remove it from internal buffer
             self.emg_data.append(np.concatenate(current_emg, 0))
+        # print(time.time()-time1)
 
-            # if not self.debug:
-            #     for sn in data[0,:]:
-            #         if self.previous_sample_number != -1 and sn != (self.previous_sample_number+1)%256:
-            #             print(f'skip from {self.previous_sample_number} to {sn}')
-            #         self.previous_sample_number = sn
+        # if not self.debug:
+        #     for sn in data[0,:]:
+        #         if self.previous_sample_number != -1 and sn != (self.previous_sample_number+1)%256:
+        #             print(f'skip from {self.previous_sample_number} to {sn}')
+        #         self.previous_sample_number = sn
 
-            #     is_digital_inputs = data[12,:] == 193
-            #     button_data = data[16,is_digital_inputs].astype(np.bool)
-            #     self.button_data.append(button_data)
-            #     if sum(button_data) != 0:
-            #         print('button pressed')
+        #     is_digital_inputs = data[12,:] == 193
+        #     button_data = data[16,is_digital_inputs].astype(np.bool)
+        #     self.button_data.append(button_data)
+        #     if sum(button_data) != 0:
+        #         print('button pressed')
 
-    # def reset(self):
-    #     for _ in range(self.queue_audio.qsize()):
-    #         self.queue_audio.get()
+    def reset(self):
+        '''
+        reset data and time Synchronize each data
+        '''
+        self.EMG_strem.q_data.get()
+        # while True:
+        #     try:
+        #         self.EMG_strem.q_data.get()
+        #     except queue.Empty:
+        #         break
 
-    #     if not self.EMG_strem.q_data.empty():
-    #         _data = self.EMG_strem.q_data.get()
-    #         current_emg.append(_data.T)
+        while True:
+            try:
+                self.queue_audio.get_nowait()
+            except queue.Empty:
+                break
+
+        self.emg_data = []
+        self.audio_data = []
 
     def get_data(self):
         emg = np.concatenate(self.emg_data, 0)
-        audio = np.concatenate(self.audio_data, 0).squeeze(1)
-        button = np.concatenate(self.button_data, 0)
-        chunk_sizes = [(e.shape[0], a.shape[0], b.shape[0]) for e, a, b in zip(self.emg_data, self.audio_data, self.button_data)]
+        # audio = np.concatenate(self.audio_data, 0).squeeze(1)
+        audio = np.concatenate(self.audio_data, 0).flatten()
+        # button = np.concatenate(self.button_data, 0)
+        chunk_sizes = [(e.shape[0], a.shape[0]) for e, a in zip(self.emg_data, self.audio_data)]  # , b.shape[0] b. , self.button_data
         self.emg_data = []
         self.audio_data = []
         self.button_data = []
-        return emg, audio, button, chunk_sizes
+        return emg, audio, chunk_sizes  # button,
 
     def __enter__(self):
         self.audio_stream.start()
@@ -252,7 +271,10 @@ class Recorder(object):
 
 
 if __name__ == '__main__':
-    with Recorder(debug=False, display=True,  wifi=True, num_channels=1) as r:
+    with Recorder(debug=False, display=True,  wifi=True, num_channels=8) as r:
+        r.reset()
         while True:
             r.update()
+            # emg, audio, chunk_sizes = r.get_data()
+            # print(len(emg), len(audio), chunk_sizes)
             # print(22222)
