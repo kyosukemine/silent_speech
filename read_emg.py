@@ -72,7 +72,7 @@ def load_utterance(base_dir, index, limit_length=False, debug=False, text_align_
     x = apply_to_all(notch_harmonics, x, 60, 1000)
     x = apply_to_all(remove_drift, x, 1000)
     x = x[raw_emg_before.shape[0]:x.shape[0]-raw_emg_after.shape[0],:]
-    emg_orig = apply_to_all(subsample, x, 689.06, 1000)
+    emg_orig = apply_to_all(subsample, x, 689.06, 1000)# 11.6msが関係してそう A stride of 11.6 ms is used to be compatible with the audio features used by many recent vocoders.
     x = apply_to_all(subsample, x, 516.79, 1000)
     emg = x
 
