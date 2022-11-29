@@ -6,13 +6,14 @@ class Book(object):
     def __init__(self, book_file):
         self.file = book_file
 
-        sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+        # sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
 
         with open(book_file) as f:
             all_text = f.read()
-        paragraphs = all_text.split('\n\n')
-        sentences = [s for p in paragraphs for s in sent_detector.tokenize(p.strip())]
-        self.sentences = [s.replace('\n', ' ') for s in sentences]
+        sentences = all_text.split('\n')
+        self.sentences = [s for s in sentences if not s == ""]
+        # sentences = [s for s in p.split("\n")]
+        # self.sentences = [s.replace('\n', ' ') for s in sentences]
 
         bookmark_file = self.file + '.bookmark'
         if os.path.exists(bookmark_file):
@@ -34,3 +35,9 @@ class Book(object):
 
     def next(self):
         self.current_index = (self.current_index+1) % len(self.sentences)
+
+
+if __name__ == "__main__":
+    book = Book("./books/japanese/hashire_merosu_toEx.txt")
+    for i in range(10):
+        print(book.sentences[i])
