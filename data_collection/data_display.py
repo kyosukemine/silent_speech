@@ -79,10 +79,15 @@ class Recorder(object):
             self.queue_audio.put(indata.copy())
         # make audio stream
         print(sd.query_devices())
-        print(sd.query_devices(1))
-        print(sd.query_devices(3))
+        # print(sd.query_devices(6))
+        # print(sd.query_devices(3))
+        print(sd.check_output_settings())
         print(sd.DeviceList())
+<<<<<<<< HEAD:data_collection/data_display.py
         self.audio_stream = sd.InputStream(device=0, channels=1, samplerate=16000, latency="low", callback=audio_callback)
+========
+        self.audio_stream = sd.InputStream(device=19, channels=1, samplerate=16000, latency="low", callback=audio_callback)
+>>>>>>>> d05263c (🎉):data_collection/record_data_display.py
 
         # make emg stream
         self.emg_channels = num_channels

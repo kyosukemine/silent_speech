@@ -15,7 +15,7 @@ import time
 class InputStream():
     def __init__(self, channnels=2, host_ip="", port=50000, number_of_scan=64, passthrough_data=False) -> None:
         if host_ip == "":
-            address_list = socket.gethostbyname_ex(socket.gethostname())[2]  # gethostbyname_ex return (hostname, aliases and list of IP addresses.)
+            address_list = socket.gethostbyname_ex(socket.gethostname() + ".local")[2]  # gethostbyname_ex return (hostname, aliases and list of IP addresses.)
             host_ip = [ip_address for ip_address in address_list if "192" in ip_address][0]
         self.host_ip = host_ip
         self.channels = channnels
