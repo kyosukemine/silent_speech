@@ -58,11 +58,11 @@ def save_data(output_idx, data, book):
 
 def get_ends(data):
     emg, audio, chunk_info = data
-    emg_start = emg[:500, :]
-    emg_end = emg[-500:, :]
+    emg_start = emg[:600, :]
+    emg_end = emg[-600:, :]
     dummy_audio = np.zeros(8000)
     # dummy_button = np.zeros(500, dtype=np.bool)
-    chunk_info = [(500, 8000)]
+    chunk_info = [(600, 8000)]
     return (emg_start, dummy_audio, chunk_info), (emg_end, dummy_audio, chunk_info)
 
 

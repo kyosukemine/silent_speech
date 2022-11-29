@@ -21,3 +21,5 @@ data_collection/books/ita-corpus-main.zip
 data_collection/books/kokoro.txt
 data_collection/books/hashire_merosu.txt
 .DS_Store
+data_collection/books/english
+data_collection/books/japanese
