@@ -59,16 +59,16 @@ class InputStream():
         # サーバーとの接続 RETRYTIMESの回数だけリトライ
         print("try connecting")
         while 1:
-            # try:
-            sink_socket.connect((self.sink_ip, self.port))
-            self.sink_socket = sink_socket
-            print('[{0}] sink connect -> address : {1}:{2}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.sink_ip, self.port))
-            break
-            # except socket.error:
-            #     # 接続を確立できない場合、INTERVAL秒待ってリトライ
-            #     # time.sleep(INTERVAL)
-            #     # print('[{0}] retry after wait{1}s'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(INTERVAL)) )
-            #     pass
+            try:
+                sink_socket.connect((self.sink_ip, self.port))
+                self.sink_socket = sink_socket
+                print('[{0}] sink connect -> address : {1}:{2}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.sink_ip, self.port))
+                break
+            except socket.error:
+                # 接続を確立できない場合、INTERVAL秒待ってリトライ
+                time.sleep(1)
+                # print('[{0}] retry after wait{1}s'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(INTERVAL)) )
+                pass
 
         while self.sink_socket:
             while True:
@@ -98,7 +98,7 @@ class InputStream():
                     np_data = np.array(_data)
                     self.q_data.put(np_data)
                     if self.passthrough_data:
-                        self.pass_q.put(rcv_data)
+                        self.pass_q.put_nowait(rcv_data)
                         # self.recv_frg = True
                     # rcv_data = struct.unpack('<f', rcv_data)
 
