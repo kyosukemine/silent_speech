@@ -79,7 +79,7 @@ class Recorder(object):
         # print(sd.query_devices(3))
         print(sd.check_output_settings())
         print(sd.DeviceList())
-        self.audio_stream = sd.InputStream(device=19, channels=1, samplerate=16000, latency="low", callback=audio_callback
+        self.audio_stream = sd.InputStream(device=0, channels=1, samplerate=16000, latency="low", callback=audio_callback)
 
         # make emg stream
         self.emg_channels = num_channels
