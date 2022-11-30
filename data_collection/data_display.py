@@ -83,15 +83,11 @@ class Recorder(object):
         # print(sd.query_devices(3))
         print(sd.check_output_settings())
         print(sd.DeviceList())
-<<<<<<<< HEAD:data_collection/data_display.py
-        self.audio_stream = sd.InputStream(device=0, channels=1, samplerate=16000, latency="low", callback=audio_callback)
-========
-        self.audio_stream = sd.InputStream(device=19, channels=1, samplerate=16000, latency="low", callback=audio_callback)
->>>>>>>> d05263c (🎉):data_collection/record_data_display.py
+        self.audio_stream = sd.InputStream(device=19, channels=1, samplerate=16000, latency="low", callback=audio_callback
 
         # make emg stream
         self.emg_channels = num_channels
-        self.EMG_strem = gd.InputStream(channnels=self.emg_channels)
+        self.EMG_strem = gd.InputStream(channnels=self.emg_channels, self_ip="192.168.135.2")
 
         # params = BrainFlowInputParams()
         # if debug:
