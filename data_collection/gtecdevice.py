@@ -55,26 +55,32 @@ class InputStream():
             self.t_pass_through.start()
 
     def pass_data(self):
-        sink_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # サーバーとの接続 RETRYTIMESの回数だけリトライ
-        print("try connecting")
         while 1:
-            try:
-                sink_socket.connect((self.sink_ip, self.port))
-                self.sink_socket = sink_socket
-                print('[{0}] sink connect -> address : {1}:{2}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.sink_ip, self.port))
-                break
-            except socket.error:
-                # 接続を確立できない場合、INTERVAL秒待ってリトライ
-                time.sleep(1)
-                # print('[{0}] retry after wait{1}s'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(INTERVAL)) )
-                pass
+            sink_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print("try connecting")
+            while self.source_socket:
+                try:
+                    sink_socket.connect((self.sink_ip, self.port))
+                    self.sink_socket = sink_socket
+                    print('[{0}] sink connect -> address : {1}:{2}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.sink_ip, self.port))
+                    break
+                except socket.error:
+                    # 接続を確立できない場合、INTERVAL秒待ってリトライ
+                    time.sleep(1)
+                    # print('[{0}] retry after wait{1}s'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(INTERVAL)) )
+                    pass
 
-        while self.sink_socket:
-            # while True:
-            # if self.recv_frg:
-            self.sink_socket.send(self.pass_q.get())
-                # self.recv_frg = False
+            while self.sink_socket:
+                # while True:
+                # if self.recv_frg:
+                try:
+                    self.sink_socket.send(self.pass_q.get(timeout=3))
+                except queue.Empty:
+                    exit()
+                    # self.recv_frg = False
+                except IOError:
+                    break
 
     def _conn_source(self):
         # cnt = 0

@@ -73,10 +73,10 @@ class Recorder(object):
             self.queue_audio.put(indata.copy())
         # make audio stream
         print(sd.query_devices())
-        print(sd.query_devices(1))
-        print(sd.query_devices(3))
+        print(sd.query_devices(6))
+        print(sd.query_devices(19))
         print(sd.DeviceList())
-        self.audio_stream = sd.InputStream(device=1, channels=1, samplerate=16000, latency="low", callback=audio_callback)
+        self.audio_stream = sd.InputStream(device=19, channels=1, samplerate=16000, latency="low", callback=audio_callback)
         # make emg stream
 
         # self.queue_EMG = queue.Queue()
@@ -171,7 +171,7 @@ class Recorder(object):
             time.sleep(0.005)
 
         current_emg = []
-        _data = self.EMG_strem.q_data.get()
+        _data = self.EMG_strem.q_data.get(timeout=1)
         current_emg.append(_data.T)
         # if not self.EMG_strem.q_data.empty():
         #     _data = self.EMG_strem.q_data.get()
