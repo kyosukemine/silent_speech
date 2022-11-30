@@ -14,10 +14,6 @@ from importlib import reload  # >= python 3.4
 import gtecdevice as gd
 reload(gd)
 
-# import brainflow
-# from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, IpProtocolType
-# from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
-
 
 def remove_drift(signal, fs):
     b, a = scipy.signal.butter(3, 2, 'highpass', fs=fs)
@@ -88,29 +84,6 @@ class Recorder(object):
         # make emg stream
         self.emg_channels = num_channels
         self.EMG_strem = gd.InputStream(channnels=self.emg_channels, self_ip="192.168.135.2")
-
-        # params = BrainFlowInputParams()
-        # if debug:
-        #     board_id = -1 # synthetic
-        #     sample_rate = 256
-        # elif not wifi:
-        #     board_id = BoardIds.CYTON_BOARD.value
-        #     params.serial_port = '/dev/ttyUSB0'
-        #     sample_rate = 250
-        # else:
-        #     board_id = BoardIds.CYTON_WIFI_BOARD.value
-        #     params.ip_port = 8001
-        #     params.ip_address = '192.168.4.1'
-        # sample_rate = 1000
-        # self.emg_channels = BoardShim.get_emg_channels(board_id)
-        # if num_channels is not None:
-        #     self.emg_channels = self.emg_channels[:num_channels]
-
-        # board = BoardShim(board_id, params)
-        # board.prepare_session()
-        # board.config_board('/3') # configure for digital read
-        # board.start_stream()
-        # self.board = board
 
         # config and make data holders
         self.sample_rate = 1200
@@ -183,35 +156,15 @@ class Recorder(object):
         '''
         while True:
             time1 = time.time()
-            # if self.display:
-            #     # next two lines seem to be a better alternative to plt.pause(0.005)
-            #     # https://github.com/matplotlib/matplotlib/issues/11131
-            #     plt.gcf().canvas.draw_idle()
-            #     plt.gcf().canvas.start_event_loop(0.005)
-            # else:
-            #     time.sleep(0.005)
+
 
             current_emg = []
             _data = self.EMG_strem.q_data.get()
             # print(_data.shape)
             current_emg.append(_data.T)
-            # if not self.EMG_strem.q_data.empty():
-            #     _data = self.EMG_strem.q_data.get()
-            #     current_emg.append(_data.T)
-            # print(current_emg)
-            # while True:  # 9 µsec
-            #     try:
-            #         _data = self.EMG_strem.q_data.get_nowait()
-            #         # self.emg_data
-            #         current_emg.append(_data.T)
-            #         # self.cnt += 1
-            #     except queue.Empty:
-            #         break
 
             current_audio = []
-            # for _ in range(self.queue_audio.qsize()):
-            #     current_audio.append(self.queue_audio.get_nowait())
-            #     # print(current_audio[-1])
+
             while True:  # 40 μsec
                 try:
                     _data = self.queue_audio.get_nowait()
@@ -231,17 +184,6 @@ class Recorder(object):
                 self.emg_data.append(np.concatenate(current_emg, 0))
             # print(time.time()-time1)
 
-            # if not self.debug:
-            #     for sn in data[0,:]:
-            #         if self.previous_sample_number != -1 and sn != (self.previous_sample_number+1)%256:
-            #             print(f'skip from {self.previous_sample_number} to {sn}')
-            #         self.previous_sample_number = sn
-
-            #     is_digital_inputs = data[12,:] == 193
-            #     button_data = data[16,is_digital_inputs].astype(np.bool)
-            #     self.button_data.append(button_data)
-            #     if sum(button_data) != 0:
-            #         print('button pressed')
 
     def get_data(self):
         emg = np.concatenate(self.emg_data, 0)
@@ -279,8 +221,6 @@ class Recorder(object):
 
         self.EMG_strem.stop()
 
-        # self.board.stop_stream()
-        # self.board.release_session()
 
         # plt.close()
         print("exit")
