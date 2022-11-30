@@ -13,13 +13,13 @@ import time
 
 
 class InputStream():
-    def __init__(self, channnels=2, source_ip="", port=50000, number_of_scan=64, passthrough_data=False, sink_ip="") -> None:
-        if source_ip == "":
+    def __init__(self, channnels=2, self_ip="", port=50000, number_of_scan=64, passthrough_data=False, sink_ip="") -> None:
+        if self_ip == "":
             # address_list = socket.gethostbyname_ex(socket.gethostname() + ".local") [2] # gethostbyname_ex return (hostname, aliases and list of IP addresses.)
-            # source_ip = [ip_address for ip_address in address_list if "192" in ip_address][0]
-            print("enter source ip ", end=":")
-            source_ip = input()
-        self.source_ip = source_ip
+            # self_ip = [ip_address for ip_address in address_list if "192" in ip_address][0]
+            print("enter self ip ", end=":")
+            self_ip = input()
+        self.self_ip = self_ip
         self.sink_ip = sink_ip
         self.channels = channnels
         self.port = port
@@ -31,17 +31,17 @@ class InputStream():
         if passthrough_data:
             if sink_ip =="":
                 print("enter sink ip ", end=":")
-                source_ip = input()
+                self_ip = input()
             self.pass_q = queue.Queue()
             self.recv_frg = False
 
     def start(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as source_socket:
             # source_socket.setsockopt(socket.SQL_SOCKET, socket.SO_REUSEADDR, 1)
-            print(self.source_ip)
-            source_socket.bind((self.source_ip, self.port))
+            print(self.self_ip)
+            source_socket.bind((self.self_ip, self.port))
             source_socket.listen(1)
-            print("[{}] run source ip {}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.source_ip))
+            print("[{}] run source ip {}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.self_ip))
             self.source_socket, self.address = source_socket.accept()
 
 
@@ -124,6 +124,6 @@ class InputStream():
 
 
 if __name__ == "__main__":
-    # s = InputStream(source_ip="192.168.0.169", passthrough_data=True, sink_ip="192.168.0.165")
+    # s = InputStream(self_ip="192.168.0.169", passthrough_data=True, sink_ip="192.168.0.165")
     s = InputStream(passthrough_data=True, sink_ip="192.168.0.165")
     s.start()
