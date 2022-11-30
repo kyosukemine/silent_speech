@@ -86,7 +86,7 @@ class Recorder(object):
 
         # make emg stream
         self.emg_channels = num_channels
-        self.EMG_strem = gd.InputStream(channnels=self.emg_channels)
+        self.EMG_strem = gd.InputStream(channnels=self.emg_channels, self_ip="192.168.100.6", passthrough_data=True, sink_ip="192.168.100.74")
 
         # params = BrainFlowInputParams()
         # if debug:
@@ -162,7 +162,7 @@ class Recorder(object):
         curve_EMGlist = []
         for i in range(EMG_num_channels):
             _p = win.addPlot(row=i//2+1, col=i % 2, title=f"EMG_channel_{i}")
-            _p.setYRange(500,-500)
+            _p.setYRange(500, -500)
             _curve = _p.plot(pen=i+1)
             p_EMGlist.append(_p)
             curve_EMGlist.append(_curve)
