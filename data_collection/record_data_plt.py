@@ -81,7 +81,7 @@ class Recorder(object):
 
         # self.queue_EMG = queue.Queue()
         self.emg_channels = num_channels
-        self.EMG_strem = gd.InputStream(channnels=self.emg_channels)
+        self.EMG_strem = gd.InputStream(channnels=self.emg_channels, self_ip="192.168.135.10", passthrough_data=True, sink_ip="192.168.135.2")
 
         # params = BrainFlowInputParams()
         # if debug:
