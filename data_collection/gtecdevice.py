@@ -13,11 +13,14 @@ import time
 
 
 class InputStream():
-    def __init__(self, channnels=2, host_ip="", port=50000, number_of_scan=64, passthrough_data=False) -> None:
-        if host_ip == "":
-            address_list = socket.gethostbyname_ex(socket.gethostname() + ".local")[2]  # gethostbyname_ex return (hostname, aliases and list of IP addresses.)
-            host_ip = [ip_address for ip_address in address_list if "192" in ip_address][0]
-        self.host_ip = host_ip
+    def __init__(self, channnels=2, source_ip="", port=50000, number_of_scan=64, passthrough_data=False, sink_ip="") -> None:
+        if source_ip == "":
+            # address_list = socket.gethostbyname_ex(socket.gethostname() + ".local") [2] # gethostbyname_ex return (hostname, aliases and list of IP addresses.)
+            # source_ip = [ip_address for ip_address in address_list if "192" in ip_address][0]
+            print("enter source ip ", end=":")
+            source_ip = input()
+        self.source_ip = source_ip
+        self.sink_ip = sink_ip
         self.channels = channnels
         self.port = port
         self.number_of_scan = number_of_scan
@@ -26,32 +29,25 @@ class InputStream():
         # self.cnt = 0
         self.passthrough_data = passthrough_data
         if passthrough_data:
+            if sink_ip =="":
+                print("enter sink ip ", end=":")
+                source_ip = input()
             self.pass_q = queue.Queue()
             self.recv_frg = False
 
     def start(self):
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-            # client_socket.setsockopt(socket.SQL_SOCKET, socket.SO_REUSEADDR, 1)
-            # サーバーとの接続 RETRYTIMESの回数だけリトライ
-            RETRYTIMES = 10
-            INTERVAL = 1
-            for x in range(RETRYTIMES):
-                try:
-                    client_socket.connect((self.host_ip, self.port))
-                    self.client_socket = client_socket
-                    print('[{0}] server connect -> address : {1}:{2}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.host_ip, self.port))
-                    break
-                except socket.error:
-                    # 接続を確立できない場合、INTERVAL秒待ってリトライ
-                    time.sleep(INTERVAL)
-                    print('[{0}] retry after wait {1} sec'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(INTERVAL)))
-            if client_socket:
-                exit()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as source_socket:
+            # source_socket.setsockopt(socket.SQL_SOCKET, socket.SO_REUSEADDR, 1)
+            print(self.source_ip)
+            source_socket.bind((self.source_ip, self.port))
+            source_socket.listen(1)
+            print("[{}] run source ip {}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.source_ip))
+            self.source_socket, self.address = source_socket.accept()
 
-        self.t_client_socket = threading.Thread(target=self._conn_client)
+
+        self.t_source_socket = threading.Thread(target=self._conn_source)
         # t.setDaemon(True)
-        self.t_client_socket.start()
+        self.t_source_socket.start()
         # self.t_socket = threading.Thread(target=_start)
         # self.t_socket.start()
 
@@ -60,32 +56,38 @@ class InputStream():
             self.t_pass_throufh.start()
 
     def pass_data(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-            # server_socket.setsockopt(socket.SQL_SOCKET, socket.SO_REUSEADDR, 1)
-            server_socket.bind((self.host_ip, self.port))
-            server_socket.listen(1)
-            print("[{}] run server ip {}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.host_ip))
-            self.server_socket, self.address = server_socket.accept()
+        sink_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)       
+        # サーバーとの接続 RETRYTIMESの回数だけリトライ
+        while 1:
+            try:
+                sink_socket.connect((self.sink_ip, self.port))
+                self.sink_socket =  sink_socket
+                print('[{0}] sink connect -> address : {1}:{2}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.host, self.port) )
+                break
+            except socket.error:
+                # 接続を確立できない場合、INTERVAL秒待ってリトライ
+                # time.sleep(INTERVAL)
+                # print('[{0}] retry after wait{1}s'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(INTERVAL)) )
+                pass
 
-        print("[{0}] connect clinet -> address : {1}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.address))
-        # self._conn_server()
-        while self.server_socket():
+
+        while self.sink_socket():
             while True:
                 if self.recv_frg:
-                    self.server_socket.send(self.pass_q.pop())
+                    self.sink_socket.send(self.pass_q.pop())
                     self.recv_frg = False
 
-    def _conn_client(self):
+    def _conn_source(self):
         # cnt = 0
 
-        while self.client_socket:
+        while self.source_socket:
             recv_numbytes = self.channels*self.number_of_scan*4
             while True:
                 # サーバーからデータ受信
-                # rcv_data = client_socket.recv(DATASIZE)
-                rcv_data = self.client_socket.recv(recv_numbytes)
+                # rcv_data = source_socket.recv(DATASIZE)
+                rcv_data = self.source_socket.recv(recv_numbytes)
                 if len(rcv_data) < recv_numbytes:  # 4=float32
-                    rcv_data += self.client_socket.recv(recv_numbytes-len(rcv_data))
+                    rcv_data += self.source_socket.recv(recv_numbytes-len(rcv_data))
                 # print(len(rcv_data))
                 if rcv_data:
                     _data = [[] for _ in range(self.channels)]
@@ -103,7 +105,7 @@ class InputStream():
 
                 else:
                     break
-        print("[{0}] disconnect client -> address : {1}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.address))
+        print("[{0}] disconnect source -> address : {1}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.address))
         # print(cnt)
 
     # def get(self):
@@ -116,11 +118,12 @@ class InputStream():
     #             break
 
     def stop(self):
-        self.client_socket.close()
+        self.source_socket.close()
         if self.passthrough_data:
-            self.server_socket.close()
+            self.sink_socket.close()
 
 
 if __name__ == "__main__":
-    s = InputStream()
+    # s = InputStream(source_ip="192.168.0.169", passthrough_data=True, sink_ip="192.168.0.165")
+    s = InputStream(passthrough_data=True, sink_ip="192.168.0.165")
     s.start()
