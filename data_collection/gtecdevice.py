@@ -29,9 +29,9 @@ class InputStream():
         # self.cnt = 0
         self.passthrough_data = passthrough_data
         if passthrough_data:
-            if sink_ip =="":
+            if sink_ip == "":
                 print("enter sink ip ", end=":")
-                self_ip = input()
+                self.sink_ip = input()
             self.pass_q = queue.Queue()
             self.recv_frg = False
 
@@ -41,9 +41,8 @@ class InputStream():
             print(self.self_ip)
             source_socket.bind((self.self_ip, self.port))
             source_socket.listen(1)
-            print("[{}] run source ip {}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.self_ip))
+            print("[{}] run self ip {}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.self_ip))
             self.source_socket, self.address = source_socket.accept()
-
 
         self.t_source_socket = threading.Thread(target=self._conn_source)
         # t.setDaemon(True)
@@ -53,29 +52,29 @@ class InputStream():
 
         if self.passthrough_data:
             self.t_pass_through = threading.Thread(target=self.pass_data)
-            self.t_pass_throufh.start()
+            self.t_pass_through.start()
 
     def pass_data(self):
-        sink_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)       
+        sink_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # サーバーとの接続 RETRYTIMESの回数だけリトライ
+        print("try connecting")
         while 1:
-            try:
-                sink_socket.connect((self.sink_ip, self.port))
-                self.sink_socket =  sink_socket
-                print('[{0}] sink connect -> address : {1}:{2}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.host, self.port) )
-                break
-            except socket.error:
-                # 接続を確立できない場合、INTERVAL秒待ってリトライ
-                # time.sleep(INTERVAL)
-                # print('[{0}] retry after wait{1}s'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(INTERVAL)) )
-                pass
+            # try:
+            sink_socket.connect((self.sink_ip, self.port))
+            self.sink_socket = sink_socket
+            print('[{0}] sink connect -> address : {1}:{2}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.sink_ip, self.port))
+            break
+            # except socket.error:
+            #     # 接続を確立できない場合、INTERVAL秒待ってリトライ
+            #     # time.sleep(INTERVAL)
+            #     # print('[{0}] retry after wait{1}s'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(INTERVAL)) )
+            #     pass
 
-
-        while self.sink_socket():
+        while self.sink_socket:
             while True:
-                if self.recv_frg:
-                    self.sink_socket.send(self.pass_q.pop())
-                    self.recv_frg = False
+                # if self.recv_frg:
+                self.sink_socket.send(self.pass_q.get())
+                    # self.recv_frg = False
 
     def _conn_source(self):
         # cnt = 0
@@ -100,7 +99,7 @@ class InputStream():
                     self.q_data.put(np_data)
                     if self.passthrough_data:
                         self.pass_q.put(rcv_data)
-                        self.recv_frg = True
+                        # self.recv_frg = True
                     # rcv_data = struct.unpack('<f', rcv_data)
 
                 else:
