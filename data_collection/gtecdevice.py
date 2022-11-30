@@ -71,39 +71,38 @@ class InputStream():
                 pass
 
         while self.sink_socket:
-            while True:
-                # if self.recv_frg:
-                self.sink_socket.send(self.pass_q.get())
-                    # self.recv_frg = False
+            # while True:
+            # if self.recv_frg:
+            self.sink_socket.send(self.pass_q.get())
+                # self.recv_frg = False
 
     def _conn_source(self):
         # cnt = 0
 
         while self.source_socket:
             recv_numbytes = self.channels*self.number_of_scan*4
-            while True:
-                # サーバーからデータ受信
-                # rcv_data = source_socket.recv(DATASIZE)
-                rcv_data = self.source_socket.recv(recv_numbytes)
-                if len(rcv_data) < recv_numbytes:  # 4=float32
-                    rcv_data += self.source_socket.recv(recv_numbytes-len(rcv_data))
-                # print(len(rcv_data))
-                if rcv_data:
-                    _data = [[] for _ in range(self.channels)]
-                    # print(rcv_data)
-                    # print(*struct.iter_unpacpk('<f', rcv_data))
-                    for i, d in enumerate(struct.iter_unpack('<f', rcv_data)):
-                        _data[i % self.channels].append(d[0])
-                    # _data = np.array([d[0] for d in struct.iter_unpack('<f', rcv_data)])
-                    np_data = np.array(_data)
-                    self.q_data.put(np_data)
-                    if self.passthrough_data:
-                        self.pass_q.put_nowait(rcv_data)
-                        # self.recv_frg = True
-                    # rcv_data = struct.unpack('<f', rcv_data)
-
-                else:
-                    break
+            # while True:
+            # サーバーからデータ受信
+            # rcv_data = source_socket.recv(DATASIZE)
+            rcv_data = self.source_socket.recv(recv_numbytes)
+            if len(rcv_data) < recv_numbytes:  # 4=float32
+                rcv_data += self.source_socket.recv(recv_numbytes-len(rcv_data))
+            # print(len(rcv_data))
+            if rcv_data:
+                _data = [[] for _ in range(self.channels)]
+                # print(rcv_data)
+                # print(*struct.iter_unpacpk('<f', rcv_data))
+                for i, d in enumerate(struct.iter_unpack('<f', rcv_data)):
+                    _data[i % self.channels].append(d[0])
+                # _data = np.array([d[0] for d in struct.iter_unpack('<f', rcv_data)])
+                np_data = np.array(_data)
+                self.q_data.put(np_data)
+                if self.passthrough_data:
+                    self.pass_q.put_nowait(rcv_data)
+                    # self.recv_frg = True
+                # rcv_data = struct.unpack('<f', rcv_data)
+            else:
+                break
         print("[{0}] disconnect source -> address : {1}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.address))
         # print(cnt)
 
