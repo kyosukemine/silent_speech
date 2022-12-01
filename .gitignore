@@ -18,13 +18,13 @@ data_collection/books/Sherlock_Holmes.txt
 data_collection/books/Sherlock_Holmes_raw.txt
 data_collection/books/ita-corpus-main/*
 data_collection/books/ita-corpus-main.zip
-<<<<<<< HEAD
 data_collection/books/kokoro.txt
 data_collection/books/hashire_merosu.txt
-.DS_Store
 data_collection/books/english
 data_collection/books/japanese
-=======
 data_collection/.DS_Store
 .DS_Store
->>>>>>> 5fa3b81 (🎉)
+data_collection/books
+data_collection/books/closed_vocab.txt
+data_collection/books/create_data.py
+data_collection/books/closed_vocab.txt

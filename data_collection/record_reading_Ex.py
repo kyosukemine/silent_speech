@@ -7,7 +7,7 @@ import json
 import numpy as np
 
 from read_book import Book
-from record_data_plt import Recorder
+from record_data_Ex import Recorder
 
 from absl import flags
 FLAGS = flags.FLAGS
