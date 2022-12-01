@@ -62,9 +62,8 @@ def get_last_sequence(chunk_list, n, k, do_filtering, fs):
     return result_padded
 
 
-class Recorder(object):
-    def __init__(self, debug=False, display=True, num_channels=8, wifi=True):
-
+class Display(object):
+    def __init__(self, debug=False, num_channels=8):
         self.queue_audio = queue.Queue()
 
         def audio_callback(indata, frames, time, status):
@@ -73,48 +72,41 @@ class Recorder(object):
                 print(status, file=sys.stderr)
             # Fancy indexing with mapping creates a (necessary!) copy:
             self.queue_audio.put(indata.copy())
+
         # make audio stream
         print(sd.query_devices())
         # print(sd.query_devices(6))
         # print(sd.query_devices(3))
         print(sd.check_output_settings())
         print(sd.DeviceList())
-        self.audio_stream = sd.InputStream(device=0, channels=1, samplerate=16000, latency="low", callback=audio_callback)
+        self.audio_sample_rate = 16000
+        self.audio_stream = sd.InputStream(device=0, channels=1, samplerate=self.audio_sample_rate,latency="low", callback=audio_callback)
 
         # make emg stream
         self.emg_channels = num_channels
-        self.EMG_strem = gd.InputStream(channnels=self.emg_channels, self_ip="192.168.135.2")
+        self.EMG_strem = gd.InputStream(channnels=self.emg_channels, self_ip="192.168.135.2")  # IP address of PC for display (pc run this file)
 
         # config and make data holders
-        self.sample_rate = 1200
-
-        self.audio_multiplier = int(16000/self.sample_rate)
-        self.window = self.sample_rate*5
+        self.EMG_sample_rate = 1200
+        self.slice_num = 10
+        self.audio_multiplier = int(self.audio_sample_rate/2400)
+        self.window = self.EMG_sample_rate*5
 
         self.audio_data = []
         self.emg_data = []
         self.button_data = []
 
-        self.debug = debug
-        self.previous_sample_number = -1
-
-        # self.audio_data_toplot = []
-
-        if display:
-            # plot setup
-            self.qtplot(num_channels)
-
-            # thread
-            self.t_update = threading.Thread(target=self.update)
-            self.t_update.start()
-            # self.t_getdata = Process(target=self.getdata)
-            self.timer = QtCore.QTimer()
-            # self.timer.timeout.connect(self.update)
-            self.timer.timeout.connect(self.plot_update)
-            self.timer.start(60)  # ミリ秒単位
-            # pg.exec()
+        # self.debug = debug
+        # self.previous_sample_number = -1
 
         # plot setup
+        self.qtplot(num_channels)
+        # thread
+        self.t_update = threading.Thread(target=self.update)
+        self.t_update.start()
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.plot_update)
+        self.timer.start(60)  # ミリ秒単位
 
     def qtplot(self, EMG_num_channels):
         app = pg.mkQApp("gtec plot")
@@ -136,7 +128,7 @@ class Recorder(object):
         curve_EMGlist = []
         for i in range(EMG_num_channels):
             _p = win.addPlot(row=i//2+1, col=i % 2, title=f"EMG_channel_{i}")
-            _p.setYRange(500,-500)
+            _p.setYRange(500, -500)
             _curve = _p.plot(pen=i+1)
             p_EMGlist.append(_p)
             curve_EMGlist.append(_curve)
@@ -152,63 +144,49 @@ class Recorder(object):
     def update(self):
         '''
         time until data is filled by gtec > audio
-
         '''
+        while self.EMG_strem.q_data.empty():
+            pass
         while True:
-            time1 = time.time()
-
-
             current_emg = []
-            _data = self.EMG_strem.q_data.get()
-            # print(_data.shape)
+            try:
+                _data = self.EMG_strem.q_data.get(timeout=3)
+            except queue.Empty:
+                print("Empty queue")
+                exit()
+                # pg.exit()
+                break
             current_emg.append(_data.T)
-
             current_audio = []
-
             while True:  # 40 μsec
                 try:
                     _data = self.queue_audio.get_nowait()
-                    # self.emg_data
                     current_audio.append(_data)
-                    # self.cnt += 1
                 except queue.Empty:
                     break
 
             if len(current_audio) > 0:
                 self.audio_data.append(np.concatenate(current_audio, 0))
-            # print(current_emg)
-            # print(len(current_emg) > 0)
-            # print(current_emg[0])
             if len(current_emg) > 0:
-                # data = self.board.get_board_data() # get all data and remove it from internal buffer
                 self.emg_data.append(np.concatenate(current_emg, 0))
-            # print(time.time()-time1)
 
-
-    def get_data(self):
-        emg = np.concatenate(self.emg_data, 0)
-        audio = np.concatenate(self.audio_data, 0).squeeze(1)
-        button = np.concatenate(self.button_data, 0)
-        chunk_sizes = [(e.shape[0], a.shape[0], b.shape[0]) for e, a, b in zip(self.emg_data, self.audio_data, self.button_data)]
-        self.emg_data = []
-        self.audio_data = []
-        self.button_data = []
-        return emg, audio, button, chunk_sizes
+    # def get_data(self):
+    #     emg = np.concatenate(self.emg_data, 0)
+    #     audio = np.concatenate(self.audio_data, 0).squeeze(1)
+    #     button = np.concatenate(self.button_data, 0)
+    #     chunk_sizes = [(e.shape[0], a.shape[0], b.shape[0]) for e, a, b in zip(self.emg_data, self.audio_data, self.button_data)]
+    #     self.emg_data = []
+    #     self.audio_data = []
+    #     self.button_data = []
+    #     return emg, audio, button, chunk_sizes
 
     def plot_update(self):
-
-        # print(self.audio_data)
-
-        audio_to_plot = get_last_sequence(self.audio_data, self.window*self.audio_multiplier, 1, False, self.sample_rate)
+        audio_to_plot = get_last_sequence(self.audio_data, self.window*self.audio_multiplier, 1, False, self.EMG_sample_rate)
         audio_to_plot = audio_to_plot.squeeze(1)
-        # print(sum(audio_to_plot))
-        emg_to_plot = get_last_sequence(self.emg_data, self.window, self.emg_channels, True, self.sample_rate)
-        # print(emg_to_plot.shape)
+        emg_to_plot = get_last_sequence(self.emg_data, self.window, self.emg_channels, True, self.EMG_sample_rate)
         for i, _curve in enumerate(self.curve_EMGlist):
-            _curve.setData(emg_to_plot[:, i])
-        # audio_lines[0].set_ydata(audio_to_plot)
-        self.curve_audio.setData(audio_to_plot)
-        # self.curve_cos.setData()
+            _curve.setData(emg_to_plot[:, i][::self.slice_num])
+        self.curve_audio.setData(audio_to_plot[::self.slice_num])
 
     def __enter__(self):
         self.audio_stream.start()
@@ -218,18 +196,11 @@ class Recorder(object):
     def __exit__(self, type, value, traceback):
         self.audio_stream.stop()
         self.audio_stream.close()
-
         self.EMG_strem.stop()
-
-
-        # plt.close()
         print("exit")
         pg.exit()
 
 
 if __name__ == '__main__':
-    with Recorder(debug=True, wifi=True, num_channels=8, display=True) as r:
+    with Display(debug=True, wifi=True, num_channels=8, display=True) as r:
         pg.exec()
-        # while True:
-        #     # r.update()
-        #     pass
