@@ -12,6 +12,7 @@ flags.DEFINE_integer('model_size', 768, 'number of hidden dimensions')
 flags.DEFINE_integer('num_layers', 6, 'number of layers')
 flags.DEFINE_float('dropout', .2, 'dropout')
 
+
 class ResBlock(nn.Module):
     def __init__(self, num_ins, num_outs, stride=1):
         super().__init__()
@@ -40,6 +41,7 @@ class ResBlock(nn.Module):
 
         return F.relu(x + res)
 
+
 class Model(nn.Module):
     def __init__(self, num_features, num_outs, num_aux_outs=None):
         super().__init__()
@@ -51,7 +53,8 @@ class Model(nn.Module):
         )
         self.w_raw_in = nn.Linear(FLAGS.model_size, FLAGS.model_size)
 
-        encoder_layer = TransformerEncoderLayer(d_model=FLAGS.model_size, nhead=8, relative_positional=True, relative_positional_distance=100, dim_feedforward=3072, dropout=FLAGS.dropout)
+        encoder_layer = TransformerEncoderLayer(d_model=FLAGS.model_size, nhead=8, relative_positional=True,
+                                                relative_positional_distance=100, dim_feedforward=3072, dropout=FLAGS.dropout)
         self.transformer = nn.TransformerEncoder(encoder_layer, FLAGS.num_layers)
         self.w_out = nn.Linear(FLAGS.model_size, num_outs)
 
@@ -65,22 +68,21 @@ class Model(nn.Module):
         if self.training:
             r = random.randrange(8)
             if r > 0:
-                x_raw[:,:-r,:] = x_raw[:,r:,:] # shift left r
-                x_raw[:,-r:,:] = 0
+                x_raw[:, :-r, :] = x_raw[:, r:, :]  # shift left r
+                x_raw[:, -r:, :] = 0
 
-        x_raw = x_raw.transpose(1,2) # put channel before time for conv
+        x_raw = x_raw.transpose(1, 2)  # put channel before time for conv
         x_raw = self.conv_blocks(x_raw)
-        x_raw = x_raw.transpose(1,2)
+        x_raw = x_raw.transpose(1, 2)
         x_raw = self.w_raw_in(x_raw)
 
         x = x_raw
 
-        x = x.transpose(0,1) # put time first
+        x = x.transpose(0, 1)  # put time first
         x = self.transformer(x)
-        x = x.transpose(0,1)
+        x = x.transpose(0, 1)
 
         if self.has_aux_out:
             return self.w_out(x), self.w_aux(x)
         else:
             return self.w_out(x)
-

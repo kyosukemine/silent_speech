@@ -18,8 +18,9 @@ from absl import flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('model', None, 'checkpoint of model to run')
 
+
 def main():
-    trainset = EMGDataset(dev=False,test=False)
+    trainset = EMGDataset(dev=False, test=False)
     devset = EMGDataset(dev=True)
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -36,15 +37,15 @@ def main():
         with open(os.path.join(FLAGS.output_directory, f'{name_prefix}_filelist.txt'), 'w') as filelist:
             for i, datapoint in enumerate(dataset):
                 spec = get_aligned_prediction(model, datapoint, device, dataset.mfcc_norm)
-                spec = spec.T[np.newaxis,:,:].detach().cpu().numpy()
+                spec = spec.T[np.newaxis, :, :].detach().cpu().numpy()
                 np.save(os.path.join(FLAGS.output_directory, 'mels', f'{name_prefix}_output_{i}.npy'), spec)
                 audio, r = sf.read(datapoint['audio_file'])
                 if r != 22050:
                     audio = librosa.resample(audio, r, 22050, res_type='kaiser_fast')
-                audio = np.clip(audio, -1, 1) # because resampling sometimes pushes things out of range
+                audio = np.clip(audio, -1, 1)  # because resampling sometimes pushes things out of range
                 sf.write(os.path.join(FLAGS.output_directory, 'wavs', f'{name_prefix}_output_{i}.wav'), audio, 22050)
                 filelist.write(f'{name_prefix}_output_{i}\n')
-        
+
 
 if __name__ == "__main__":
     FLAGS(sys.argv)

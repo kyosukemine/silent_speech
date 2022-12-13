@@ -31,13 +31,14 @@ flags.DEFINE_float('phoneme_loss_weight', 0.5, 'weight of auxiliary phoneme pred
 flags.DEFINE_float('l2', 1e-7, 'weight decay')
 flags.DEFINE_string('output_directory', 'output', 'output directory')
 
+
 def test(model, testset, device):
     model.eval()
 
     dataloader = torch.utils.data.DataLoader(testset, batch_size=FLAGS.batch_size, collate_fn=testset.collate_raw)
     losses = []
     accuracies = []
-    phoneme_confusion = np.zeros((len(phoneme_inventory),len(phoneme_inventory)))
+    phoneme_confusion = np.zeros((len(phoneme_inventory), len(phoneme_inventory)))
     seq_len = 200
     with torch.no_grad():
         for batch in dataloader:
@@ -53,7 +54,8 @@ def test(model, testset, device):
             accuracies.append(phon_acc)
 
     model.train()
-    return np.mean(losses), np.mean(accuracies), phoneme_confusion #TODO size-weight average
+    return np.mean(losses), np.mean(accuracies), phoneme_confusion  # TODO size-weight average
+
 
 def save_output(model, datapoint, filename, device, audio_normalizer, vocoder):
     model.eval()
@@ -73,6 +75,7 @@ def save_output(model, datapoint, filename, device, audio_normalizer, vocoder):
 
     model.train()
 
+
 def get_aligned_prediction(model, datapoint, device, audio_normalizer):
     model.eval()
     with torch.no_grad():
@@ -82,7 +85,7 @@ def get_aligned_prediction(model, datapoint, device, audio_normalizer):
         X_raw = datapoint['raw_emg'].to(device).unsqueeze(0)
         y = datapoint['parallel_voiced_audio_features' if silent else 'audio_features'].to(device).unsqueeze(0)
 
-        pred, _ = model(X, X_raw, sess) # (1, seq, dim)
+        pred, _ = model(X, X_raw, sess)  # (1, seq, dim)
 
         if silent:
             costs = torch.cdist(pred, y).squeeze(0)
@@ -95,6 +98,7 @@ def get_aligned_prediction(model, datapoint, device, audio_normalizer):
 
     model.train()
     return pred_aligned
+
 
 def dtw_loss(predictions, phoneme_predictions, example, phoneme_eval=False, phoneme_confusion=None):
     device = predictions.device
@@ -120,13 +124,13 @@ def dtw_loss(predictions, phoneme_predictions, example, phoneme_eval=False, phon
             # pred_phone (seq1_len, 48), y_phone (seq2_len)
             # phone_probs (seq1_len, seq2_len)
             pred_phone = F.log_softmax(pred_phone, -1)
-            phone_lprobs = pred_phone[:,y_phone]
+            phone_lprobs = pred_phone[:, y_phone]
 
             costs = costs + FLAGS.phoneme_loss_weight * -phone_lprobs
 
             alignment = align_from_distances(costs.T.cpu().detach().numpy())
 
-            loss = costs[alignment,range(len(alignment))].sum()
+            loss = costs[alignment, range(len(alignment))].sum()
 
             if phoneme_eval:
                 alignment = align_from_distances(costs.T.cpu().detach().numpy())
@@ -157,6 +161,7 @@ def dtw_loss(predictions, phoneme_predictions, example, phoneme_eval=False, phon
 
     return sum(losses)/total_length, correct_phones/total_length
 
+
 def train_model(trainset, devset, device, save_sound_outputs=True):
     n_epochs = FLAGS.epochs
 
@@ -164,7 +169,8 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
         training_subset = trainset
     else:
         training_subset = trainset.subset(FLAGS.data_size_fraction)
-    dataloader = torch.utils.data.DataLoader(training_subset, pin_memory=(device=='cuda'), collate_fn=devset.collate_raw, num_workers=0, batch_sampler=SizeAwareSampler(training_subset, 256000))
+    dataloader = torch.utils.data.DataLoader(training_subset, pin_memory=(device == 'cuda'), collate_fn=devset.collate_raw,
+                                             num_workers=0, batch_sampler=SizeAwareSampler(training_subset, 256000))
 
     n_phones = len(phoneme_inventory)
     model = Model(devset.num_features, devset.num_speech_features, n_phones).to(device)
@@ -184,6 +190,7 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
             param_group['lr'] = new_lr
 
     target_lr = FLAGS.learning_rate
+
     def schedule_lr(iteration):
         iteration = iteration + 1
         if iteration <= FLAGS.learning_rate_warmup:
@@ -215,7 +222,7 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
         val, phoneme_acc, _ = test(model, devset, device)
         lr_sched.step(val)
         logging.info(f'finished epoch {epoch_idx+1} - validation loss: {val:.4f} training loss: {train_loss:.4f} phoneme accuracy: {phoneme_acc*100:.2f}')
-        torch.save(model.state_dict(), os.path.join(FLAGS.output_directory,'model.pt'))
+        torch.save(model.state_dict(), os.path.join(FLAGS.output_directory, 'model.pt'))
         if save_sound_outputs:
             save_output(model, devset[0], os.path.join(FLAGS.output_directory, f'epoch_{epoch_idx}_output.wav'), device, devset.mfcc_norm, vocoder)
 
@@ -227,27 +234,29 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
 
     return model
 
+
 def main():
     os.makedirs(FLAGS.output_directory, exist_ok=True)
     logging.basicConfig(handlers=[
-            logging.FileHandler(os.path.join(FLAGS.output_directory, 'log.txt'), 'w'),
-            logging.StreamHandler()
-            ], level=logging.INFO, format="%(message)s")
+        logging.FileHandler(os.path.join(FLAGS.output_directory, 'log.txt'), 'w'),
+        logging.StreamHandler()
+    ], level=logging.INFO, format="%(message)s")
 
-    logging.info(subprocess.run(['git','rev-parse','HEAD'], stdout=subprocess.PIPE, universal_newlines=True).stdout)
-    logging.info(subprocess.run(['git','diff'], stdout=subprocess.PIPE, universal_newlines=True).stdout)
+    logging.info(subprocess.run(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE, universal_newlines=True).stdout)
+    logging.info(subprocess.run(['git', 'diff'], stdout=subprocess.PIPE, universal_newlines=True).stdout)
 
     logging.info(sys.argv)
 
-    trainset = EMGDataset(dev=False,test=False)
+    trainset = EMGDataset(dev=False, test=False)
     devset = EMGDataset(dev=True)
     logging.info('output example: %s', devset.example_indices[0])
-    logging.info('train / dev split: %d %d',len(trainset),len(devset))
+    logging.info('train / dev split: %d %d', len(trainset), len(devset))
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # device = 'cpu'
 
     model = train_model(trainset, devset, device, save_sound_outputs=(FLAGS.hifigan_checkpoint is not None))
+
 
 if __name__ == '__main__':
     FLAGS(sys.argv)
