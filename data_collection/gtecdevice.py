@@ -91,14 +91,13 @@ class InputStream():
             # サーバーからデータ受信
             # rcv_data = source_socket.recv(DATASIZE)
             rcv_data = self.source_socket.recv(recv_numbytes)
-            if len(rcv_data) < recv_numbytes:  # 4=float32
+            while len(rcv_data) < recv_numbytes:  # 4=float32
                 rcv_data += self.source_socket.recv(recv_numbytes-len(rcv_data))
             # print(len(rcv_data))
             if rcv_data:
                 _data = [[] for _ in range(self.channels)]
                 # print(rcv_data)
                 # print(*struct.iter_unpacpk('<f', rcv_data))
-                # TODO データが全て送られているかの保証がないためgtec側のプログラムで全てのデータが送られたか確認&再送機能が必要
                 for i, d in enumerate(struct.iter_unpack('<f', rcv_data)):
                     _data[i % self.channels].append(d[0])
                 # _data = np.array([d[0] for d in struct.iter_unpack('<f', rcv_data)])
