@@ -91,7 +91,7 @@ class InputStream():
             # サーバーからデータ受信
             # rcv_data = source_socket.recv(DATASIZE)
             rcv_data = self.source_socket.recv(recv_numbytes)
-            if len(rcv_data) < recv_numbytes:  # 4=float32
+            while len(rcv_data) < recv_numbytes:  # 4=float32
                 rcv_data += self.source_socket.recv(recv_numbytes-len(rcv_data))
             # print(len(rcv_data))
             if rcv_data:
