@@ -174,10 +174,11 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
 
     n_phones = len(phoneme_inventory)
     model = Model(devset.num_features, devset.num_speech_features, n_phones).to(device)
-    model = torch.nn.DataParallel(model)
+
     if FLAGS.start_training_from is not None:
         state_dict = torch.load(FLAGS.start_training_from)
         model.load_state_dict(state_dict, strict=False)
+    model = torch.nn.DataParallel(model)
 
     if save_sound_outputs:
         vocoder = Vocoder()
