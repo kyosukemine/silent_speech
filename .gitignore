@@ -30,3 +30,11 @@ data_collection/books/closed_vocab.txt
 data_collection/books/create_data.py
 data_collection/books/closed_vocab.txt
 EMG_data
+evaluation_output_test
+text_alignments_closed
+aligner/**/**/*.TextGrid
+aligner/**/**/*.npy
+aligner/**/**/*.txt
+aligner/**/**/*.flac
+aligner/**/**/*.json
+evaluation*/*.wav
