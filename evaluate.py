@@ -32,6 +32,14 @@ class EnsembleModel(nn.Module):
             ps.append(p)
         return torch.stack(ys, 0).mean(0), torch.stack(ps, 0).mean(0)
 
+from collections import OrderedDict
+def fix_key(state_dict):
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        if k.startswith('module.'):
+            k = k[7:]
+        new_state_dict[k] = v
+    return new_state_dict
 
 def main():
     os.makedirs(FLAGS.output_directory, exist_ok=True)
@@ -47,11 +55,12 @@ def main():
 
     models = []
     for fname in FLAGS.models:
-        state_dict = torch.load(fname)
+        state_dict = fix_key(torch.load(fname))
         model = Model(testset.num_features, testset.num_speech_features, len(phoneme_inventory)).to(device)
         model.load_state_dict(state_dict)
         models.append(model)
     ensemble = EnsembleModel(models)
+    ensemble = torch.nn.DataParallel(ensemble)
 
     _, _, confusion = test(ensemble, testset, device)
     print_confusion(confusion)
