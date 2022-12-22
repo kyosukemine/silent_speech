@@ -1,6 +1,3 @@
-from absl import flags
-from models import Generator
-from env import AttrDict
 import os
 import json
 import sys
@@ -9,7 +6,10 @@ import numpy as np
 import torch
 
 sys.path.append('./hifi_gan')
+from env import AttrDict
+from models import Generator
 
+from absl import flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('hifigan_checkpoint', None, 'filename of hifi-gan generator checkpoint')
 
@@ -32,6 +32,6 @@ class Vocoder(object):
             returns 1d tensor of audio
         '''
         with torch.no_grad():
-            mel_spectrogram = mel_spectrogram.T[np.newaxis, :, :]
+            mel_spectrogram = mel_spectrogram.T[np.newaxis,:,:]
             audio = self.generator(mel_spectrogram)
         return audio.squeeze()
