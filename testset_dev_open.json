@@ -1,0 +1,46 @@
+{
+    "dev": [
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            42
+        ],
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            43
+        ],
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            44
+        ],
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            45
+        ],
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            46
+        ]
+    ],
+    "test": [
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            47
+        ],
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            48
+        ],
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            49
+        ],
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            50
+        ],
+        [
+            "./books/english/War_of_the_Worlds.txt",
+            51
+        ]
+    ]
+}
