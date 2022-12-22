@@ -21,7 +21,7 @@ from tqdm import tqdm
 from absl import flags
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('batch_size', 32, 'training batch size')
-flags.DEFINE_integer('epochs', 80, 'number of training epochs')
+flags.DEFINE_integer('epochs', 200, 'number of training epochs')
 flags.DEFINE_float('learning_rate', 1e-3, 'learning rate')
 flags.DEFINE_integer('learning_rate_patience', 5, 'learning rate decay patience')
 flags.DEFINE_integer('learning_rate_warmup', 500, 'steps of linear warmup')
