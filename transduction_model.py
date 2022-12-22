@@ -223,7 +223,8 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
         val, phoneme_acc, _ = test(model, devset, device)
         lr_sched.step(val)
         logging.info(f'finished epoch {epoch_idx+1} - validation loss: {val:.4f} training loss: {train_loss:.4f} phoneme accuracy: {phoneme_acc*100:.2f}')
-        torch.save(model.state_dict(), os.path.join(FLAGS.output_directory, 'model.pt'))
+        # torch.save(model.state_dict(), os.path.join(FLAGS.output_directory, 'model.pt'))
+        torch.save(model.module.state_dict(), os.path.join(FLAGS.output_directory, 'model.pt'))
         if save_sound_outputs:
             save_output(model, devset[0], os.path.join(FLAGS.output_directory, f'epoch_{epoch_idx}_output.wav'), device, devset.mfcc_norm, vocoder)
 
