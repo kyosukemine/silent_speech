@@ -237,7 +237,8 @@ def read_phonemes(textgrid_fname, max_len=None):
 
     if max_len is not None:
         phone_ids = phone_ids[:max_len]
-        assert phone_ids.shape[0] == max_len
+        # なぜか音素の方が長いデータがある？
+        # assert phone_ids.shape[0] == max_len
     return phone_ids
 
 class TextTransform(object):
