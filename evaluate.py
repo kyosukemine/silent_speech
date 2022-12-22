@@ -16,7 +16,7 @@ from absl import flags
 FLAGS = flags.FLAGS
 flags.DEFINE_list('models', [], 'identifiers of models to evaluate')
 flags.DEFINE_boolean('dev', False, 'evaluate dev insead of test')
-
+flags.DEFINE_boolean('train', False, 'evaluate train instead of test')
 
 class EnsembleModel(nn.Module):
     def __init__(self, models):
@@ -50,6 +50,8 @@ def main():
 
     dev = FLAGS.dev
     testset = EMGDataset(dev=dev, test=not dev)
+    if FLAGS.train:
+        testset = EMGDataset(dev=False, test=False)
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
