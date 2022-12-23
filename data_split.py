@@ -8,7 +8,8 @@ import json
 
 import glob
 
-silent_dirs = glob.glob("./EMG_data/100/**/english/war/silent/**/*.json")
+silent_dirs = glob.glob("./EMG_data/100/**/english/closed/silent/**/*.json")
+silent_dirs = glob.glob("./EMG_data/100/**/kokoro/silent/**/*.json")
 book_index_dict = []
 for silent_dir in silent_dirs:
     # print(silent_dir)
@@ -28,5 +29,6 @@ output = {"dev": book_index_dict[-2*int(len(book_index_dict)*split_dev_rate):-in
 print(output)
 
 # with open("./testset_dev_closed.json", "w") as f:
-with open("./testset_dev_open.json", "w") as f:
+# with open("./testset_dev_closed.json", "w") as f:
+with open("./testset_dev_jp_kokoro.json", "w") as f:
     json.dump(output, f, indent=4)
