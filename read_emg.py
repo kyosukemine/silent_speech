@@ -98,7 +98,8 @@ def load_utterance(base_dir, index, limit_length=False, debug=False, text_align_
 
     emg_features = get_emg_features(emg)
 
-    mfccs = load_audio(os.path.join(base_dir, f'{index}_audio_clean.flac'),
+    # mfccs = load_audio(os.path.join(base_dir, f'{index}_audio_clean.flac'),
+    mfccs = load_audio(os.path.join(base_dir, f'{index}_audio.flac'),
                        max_frames=min(emg_features.shape[0], 800 if limit_length else float('inf')))
 
     if emg_features.shape[0] > mfccs.shape[0]:
@@ -258,7 +259,7 @@ class EMGDataset(torch.utils.data.Dataset):
             emg = 8*np.tanh(emg/8.)
 
         session_ids = np.full(emg.shape[0], directory_info.session_index, dtype=np.int64)
-        audio_file = f'{directory_info.directory}/{idx}_audio_clean.flac'
+        audio_file = f'{directory_info.directory}/{idx}_audio.flac'
 
         text_int = np.array(self.text_transform.text_to_int(text), dtype=np.int64)
 
@@ -282,7 +283,7 @@ class EMGDataset(torch.utils.data.Dataset):
             result['parallel_voiced_audio_features'] = torch.from_numpy(voiced_mfccs).pin_memory()
             result['parallel_voiced_emg'] = torch.from_numpy(voiced_emg).pin_memory()
 
-            audio_file = f'{voiced_directory.directory}/{voiced_idx}_audio_clean.flac'
+            audio_file = f'{voiced_directory.directory}/{voiced_idx}_audio.flac'
 
         result['phonemes'] = torch.from_numpy(phonemes).pin_memory()  # either from this example if vocalized or aligned example if silent
         result['audio_file'] = audio_file
