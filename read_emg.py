@@ -152,7 +152,8 @@ class SizeAwareSampler(torch.utils.data.Sampler):
                 info = json.load(f)
             if not np.any([l in string.ascii_letters for l in info['text']]):
                 continue
-            length = sum([emg_len for emg_len, _, _ in info['chunks']])
+            # length = sum([emg_len for emg_len, _, _ in info['chunks']])
+            length = sum([emg_len for emg_len, _  in info['chunks']])
             if length > self.max_len:
                 logging.warning(f'Warning: example {idx} cannot fit within desired batch length')
             if length + batch_length > self.max_len:
