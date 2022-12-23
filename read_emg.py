@@ -263,6 +263,7 @@ class EMGDataset(torch.utils.data.Dataset):
         audio_file = f'{directory_info.directory}/{idx}_audio.flac'
 
         text_int = np.array(self.text_transform.text_to_int(text), dtype=np.int64)
+        # text_int = np.array(0)
 
         result = {
             'audio_features': torch.from_numpy(mfccs).pin_memory(),
