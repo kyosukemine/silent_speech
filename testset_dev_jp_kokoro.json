@@ -1,0 +1,46 @@
+{
+    "dev": [
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            43
+        ],
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            44
+        ],
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            45
+        ],
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            46
+        ],
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            47
+        ]
+    ],
+    "test": [
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            48
+        ],
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            49
+        ],
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            50
+        ],
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            51
+        ],
+        [
+            "./books/japanese/kokoro/kokoro_toEx_2.txt",
+            52
+        ]
+    ]
+}
