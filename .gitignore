@@ -38,3 +38,11 @@ aligner/**/**/*.txt
 aligner/**/**/*.flac
 aligner/**/**/*.json
 evaluation*/*.wav
+hifigan_training_files
+hifigan_training_files_open
+vocoder/
+evaluation
+whisper
+hifigan_UNIVERSAL
+silentspeech.tar.gz
+hifi_gan
