@@ -24,11 +24,15 @@ from data_utils import load_audio, get_emg_features, FeatureNormalizer, phoneme_
 from absl import flags
 FLAGS = flags.FLAGS
 flags.DEFINE_list('remove_channels', [], 'channels to remove')
-flags.DEFINE_list('silent_data_directories', ['./emg_data/silent_parallel_data'], 'silent data locations')
-flags.DEFINE_list('voiced_data_directories', ['./emg_data/voiced_parallel_data', './emg_data/nonparallel_data'], 'voiced data locations')
-flags.DEFINE_string('testset_file', 'testset_largedev.json', 'file with testset indices')
-flags.DEFINE_string('text_align_directory', 'text_alignments', 'directory with alignment files')
-
+# flags.DEFINE_list('silent_data_directories', ['./EMG_data/100/20221216/kokoro/silent'], 'silent data locations')
+# flags.DEFINE_list('voiced_data_directories', ['./EMG_data/100/20221216/kokoro/voiced'], 'voiced data locations')
+# flags.DEFINE_string('testset_file', 'testset_dev_jp_kokoro.json', 'file with testset indices')
+flags.DEFINE_list('silent_data_directories', ['./EMG_data/100/20221216/english/war/silent'], 'silent data locations')
+flags.DEFINE_list('voiced_data_directories', ['./EMG_data/100/20221216/english/war/voiced'], 'voiced data locations')
+flags.DEFINE_string('testset_file', 'testset_dev_open.json', 'file with testset indices')
+# flags.DEFINE_list('silent_data_directories', ['./EMG_data/100/20221216/english/closed/silent'], 'silent data locations')
+# flags.DEFINE_list('voiced_data_directories', ['./EMG_data/100/20221216/english/closed/voiced'], 'voiced data locations')
+# flags.DEFINE_string('testset_file', 'testset_dev_closed.json', 'file with testset indices')
 
 def remove_drift(signal, fs):
     b, a = scipy.signal.butter(3, 2, 'highpass', fs=fs)
