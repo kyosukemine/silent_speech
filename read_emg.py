@@ -77,13 +77,14 @@ def load_utterance(base_dir, index, limit_length=False, debug=False, text_align_
     raw_emg = raw_emg[:, (0, 1, 12, 13, 4, 5, 6, 7)]
     raw_emg_after = raw_emg_after[:, (0, 1, 12, 13, 4, 5, 6, 7)]
     raw_emg_before = raw_emg_before[:, (0, 1, 12, 13, 4, 5, 6, 7)]
+
     x = np.concatenate([raw_emg_before, raw_emg, raw_emg_after], 0)
-    x = apply_to_all(notch_harmonics, x, 60, 1000)
-    x = apply_to_all(remove_drift, x, 1000)
+    x = apply_to_all(notch_harmonics, x, 50, 1200)
+    x = apply_to_all(remove_drift, x, 1200)
     x = x[raw_emg_before.shape[0]:x.shape[0]-raw_emg_after.shape[0], :]
     # 11.6msが関係してそう A stride of 11.6 ms is used to be compatible with the audio features used by many recent vocoders.
-    emg_orig = apply_to_all(subsample, x, 689.06, 1000)
-    x = apply_to_all(subsample, x, 516.79, 1000)
+    emg_orig = apply_to_all(subsample, x, 689.06, 1200)
+    x = apply_to_all(subsample, x, 516.79, 1200)
     emg = x
 
     for c in FLAGS.remove_channels:
