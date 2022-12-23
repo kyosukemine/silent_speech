@@ -33,6 +33,7 @@ flags.DEFINE_string('testset_file', 'testset_dev_open.json', 'file with testset 
 # flags.DEFINE_list('silent_data_directories', ['./EMG_data/100/20221216/english/closed/silent'], 'silent data locations')
 # flags.DEFINE_list('voiced_data_directories', ['./EMG_data/100/20221216/english/closed/voiced'], 'voiced data locations')
 # flags.DEFINE_string('testset_file', 'testset_dev_closed.json', 'file with testset indices')
+flags.DEFINE_string('text_align_directory', './aligner/text_alignmented_war', 'directory with alignment files')
 
 def remove_drift(signal, fs):
     b, a = scipy.signal.butter(3, 2, 'highpass', fs=fs)
