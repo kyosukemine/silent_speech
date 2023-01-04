@@ -46,3 +46,4 @@ whisper
 hifigan_UNIVERSAL
 silentspeech.tar.gz
 hifi_gan
+create_textgrid_jp/emotion.csv
