@@ -2,6 +2,8 @@ from collections import OrderedDict
 import sys
 import os
 import logging
+import shutil
+
 
 import torch
 from torch import nn
@@ -19,6 +21,7 @@ flags.DEFINE_list('models', [], 'identifiers of models to evaluate')
 flags.DEFINE_boolean('dev', False, 'evaluate dev insead of test')
 flags.DEFINE_boolean('train', False, 'evaluate train instead of test')
 
+
 class EnsembleModel(nn.Module):
     def __init__(self, models):
         super().__init__()
@@ -27,13 +30,14 @@ class EnsembleModel(nn.Module):
     def forward(self, x, x_raw, sess):
         ys = []
         ps = []
+        # print(self.models)
         for model in self.models:
             y, p = model(x, x_raw, sess)
             ys.append(y)
             ps.append(p)
         return torch.stack(ys, 0).mean(0), torch.stack(ps, 0).mean(0)
 
-from collections import OrderedDict
+
 def fix_key(state_dict):
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
@@ -41,6 +45,7 @@ def fix_key(state_dict):
             k = k[7:]
         new_state_dict[k] = v
     return new_state_dict
+
 
 def main():
 
@@ -76,8 +81,8 @@ def main():
     ensemble = EnsembleModel(models)
     ensemble = torch.nn.DataParallel(ensemble)
 
-    _, _, confusion = test(ensemble, testset, device)
-    print_confusion(confusion)
+    # _, _, confusion = test(ensemble, testset, device)
+    # print_confusion(confusion)
 
     vocoder = Vocoder()
 
