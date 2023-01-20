@@ -256,6 +256,7 @@ def main():
     logging.info('train / dev split: %d %d', len(trainset), len(devset))
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(device)
     # device = 'cpu'
 
     model = train_model(trainset, devset, device, save_sound_outputs=(FLAGS.hifigan_checkpoint is not None))
