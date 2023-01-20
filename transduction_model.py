@@ -233,7 +233,8 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
     os.makedirs(os.path.join(FLAGS.output_directory, "test"), exist_ok=True)
     if save_sound_outputs:
         for i, datapoint in enumerate(devset):
-            save_output(model, datapoint, os.path.join(FLAGS.output_directory, f'example_output_{i}.wav'), device, devset.mfcc_norm, vocoder)
+            save_output(model, datapoint, os.path.join(FLAGS.output_directory, "test",
+                        f'example_output_{i}_{"silent" if datapoint["silent"] else "voiced"}_{datapoint["id"]}.wav'), device, devset.mfcc_norm, vocoder)
 
         evaluate(devset, os.path.join(FLAGS.output_directory, "test"))
 
