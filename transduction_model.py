@@ -14,7 +14,7 @@ import torch.nn.functional as F
 from read_emg import EMGDataset, SizeAwareSampler
 from architecture import Model
 from align import align_from_distances
-from asr_evaluation import evaluate
+from asr_evaluation_whisper import evaluate
 from data_utils import phoneme_inventory, decollate_tensor, combine_fixed_length
 from vocoder import Vocoder
 from tqdm import tqdm
