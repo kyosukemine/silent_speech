@@ -149,6 +149,7 @@ class SizeAwareSampler(torch.utils.data.Sampler):
         random.shuffle(indices)
         batch = []
         batch_length = 0
+        no_batch = True
         for idx in indices:
             directory_info, file_idx = self.dataset.example_indices[idx]
             with open(os.path.join(directory_info.directory, f'{file_idx}_info.json')) as f:
@@ -163,8 +164,10 @@ class SizeAwareSampler(torch.utils.data.Sampler):
                 yield batch
                 batch = []
                 batch_length = 0
+                no_batch = False
             batch.append(idx)
             batch_length += length
+        assert not no_batch
         # dropping last incomplete batch
 
 
