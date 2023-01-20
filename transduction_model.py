@@ -29,6 +29,7 @@ flags.DEFINE_string('start_training_from', None, 'start training from this model
 flags.DEFINE_float('data_size_fraction', 1.0, 'fraction of training data to use')
 flags.DEFINE_float('phoneme_loss_weight', 0.5, 'weight of auxiliary phoneme prediction loss')
 flags.DEFINE_float('l2', 1e-7, 'weight decay')
+flags.DEFINE_float('eps', 1e-8, 'epsilon')
 flags.DEFINE_string('output_directory', 'output', 'output directory')
 
 
@@ -183,7 +184,7 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
     if save_sound_outputs:
         vocoder = Vocoder()
 
-    optim = torch.optim.AdamW(model.parameters(), weight_decay=FLAGS.l2)
+    optim = torch.optim.AdamW(model.parameters(), weight_decay=FLAGS.l2, eps=FLAGS.eps)
     lr_sched = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', 0.5, patience=FLAGS.learning_rate_patience)
 
     def set_lr(new_lr):
