@@ -335,9 +335,12 @@ def make_normalizers():
     mfcc_samples = []
     emg_samples = []
     for d in dataset:
+        if d["silent"]:
+            # print("silent")
+            continue
         mfcc_samples.append(d['audio_features'])
         emg_samples.append(d['emg'])
-        if len(emg_samples) > 50:
+        if len(emg_samples) > 100:
             break
     mfcc_norm = FeatureNormalizer(mfcc_samples, share_scale=True)
     emg_norm = FeatureNormalizer(emg_samples, share_scale=False)
@@ -346,6 +349,7 @@ def make_normalizers():
 
 if __name__ == '__main__':
     FLAGS(sys.argv)
+    # make_normalizers()
     d = EMGDataset()
     for i in range(1000):
         d[i]
