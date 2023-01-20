@@ -206,6 +206,9 @@ class EMGDataset(torch.utils.data.Dataset):
                     idx_str = m.group(1)
                     with open(os.path.join(directory_info.directory, fname)) as f:
                         info = json.load(f)
+                        id = directory_info.directory.split(os.sep)[2]
+                        assert id.isdigit()
+
                         if info['sentence_index'] >= 0:  # boundary clips of silence are marked -1
                             location_in_testset = [info['book'], info['sentence_index']] in testset
                             location_in_devset = [info['book'], info['sentence_index']] in devset
@@ -215,7 +218,8 @@ class EMGDataset(torch.utils.data.Dataset):
                                 self.example_indices.append((directory_info, int(idx_str)))
 
                             if not directory_info.silent:
-                                location = (info['book'], info['sentence_index'])
+                                # location = (info['book'], info['sentence_index'], directory_info)
+                                location = (info['book'], info['sentence_index'], id)
                                 self.voiced_data_locations[location] = (directory_info, int(idx_str))
 
         self.example_indices.sort()
@@ -270,15 +274,23 @@ class EMGDataset(torch.utils.data.Dataset):
         text_int = np.array(self.text_transform.text_to_int(text), dtype=np.int64)
         # text_int = np.array(0)
 
+        id = directory_info.directory.split(os.sep)[2]
+        assert id.isdigit()
+
         result = {
             'audio_features': torch.from_numpy(mfccs).pin_memory(),
             'emg': torch.from_numpy(emg).pin_memory(),
             'text': text, 'text_int': torch.from_numpy(text_int).pin_memory(),
             'file_label': idx, 'session_ids': torch.from_numpy(session_ids).pin_memory(),
-            'book_location': book_location, 'silent': directory_info.silent, 'raw_emg': torch.from_numpy(raw_emg).pin_memory()}
+            'book_location': book_location, 'silent': directory_info.silent, 'raw_emg': torch.from_numpy(raw_emg).pin_memory(),
+            'id': id,
+            }
 
         if directory_info.silent:
-            voiced_directory, voiced_idx = self.voiced_data_locations[book_location]
+            id = directory_info.directory.split(os.sep)[2]
+            assert id.isdigit()
+            location = (book_location[0], book_location[1], id)
+            voiced_directory, voiced_idx = self.voiced_data_locations[location]
             voiced_mfccs, voiced_emg, _, _, phonemes, _ = load_utterance(
                 voiced_directory.directory, voiced_idx, False, text_align_directory=self.text_align_directory)
 
