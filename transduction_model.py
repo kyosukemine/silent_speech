@@ -226,14 +226,16 @@ def train_model(trainset, devset, device, save_sound_outputs=True):
         logging.info(f'finished epoch {epoch_idx+1} - validation loss: {val:.4f} training loss: {train_loss:.4f} phoneme accuracy: {phoneme_acc*100:.2f}')
         # torch.save(model.state_dict(), os.path.join(FLAGS.output_directory, 'model.pt'))
         torch.save(model.module.state_dict(), os.path.join(FLAGS.output_directory, 'model.pt'))
+        os.makedirs(os.path.join(FLAGS.output_directory, "epochCP"), exist_ok=True)
         if save_sound_outputs:
-            save_output(model, devset[0], os.path.join(FLAGS.output_directory, f'epoch_{epoch_idx}_output.wav'), device, devset.mfcc_norm, vocoder)
+            save_output(model, devset[0], os.path.join(FLAGS.output_directory, "epochCP",  f'epoch_{epoch_idx}_output.wav'), device, devset.mfcc_norm, vocoder)
 
+    os.makedirs(os.path.join(FLAGS.output_directory, "test"), exist_ok=True)
     if save_sound_outputs:
         for i, datapoint in enumerate(devset):
             save_output(model, datapoint, os.path.join(FLAGS.output_directory, f'example_output_{i}.wav'), device, devset.mfcc_norm, vocoder)
 
-        evaluate(devset, FLAGS.output_directory)
+        evaluate(devset, os.path.join(FLAGS.output_directory, "test"))
 
     return model
 
