@@ -42,16 +42,27 @@ def fix_key(state_dict):
     return new_state_dict
 
 def main():
-    os.makedirs(FLAGS.output_directory, exist_ok=True)
-    logging.basicConfig(handlers=[
-        logging.FileHandler(os.path.join(FLAGS.output_directory, 'eval_log.txt'), 'w'),
-        logging.StreamHandler()
-    ], level=logging.INFO, format="%(message)s")
 
     dev = FLAGS.dev
     testset = EMGDataset(dev=dev, test=not dev)
+    if not dev:
+        output_dir = "test"
+    else:
+        output_dir = "dev"
+
     if FLAGS.train:
         testset = EMGDataset(dev=False, test=False)
+    if FLAGS.train:
+        output_dir = "train"
+
+    os.makedirs(FLAGS.output_directory, exist_ok=True)
+    os.makedirs(os.path.join(FLAGS.output_directory, output_dir), exist_ok=True)
+    FLAGS.append_flags_into_file(os.path.join(FLAGS.output_directory, "flagfile.cfg"))
+
+    logging.basicConfig(handlers=[
+        logging.FileHandler(os.path.join(FLAGS.output_directory, output_dir, 'eval_log.txt'), 'w'),
+        logging.StreamHandler()
+    ], level=logging.INFO, format="%(message)s")
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -70,9 +81,11 @@ def main():
     vocoder = Vocoder()
 
     for i, datapoint in enumerate(testset):
-        save_output(ensemble, datapoint, os.path.join(FLAGS.output_directory, f'example_output_{i}.wav'), device, testset.mfcc_norm, vocoder)
-
-    evaluate(testset, FLAGS.output_directory)
+        save_output(
+            ensemble, datapoint, os.path.join(
+                FLAGS.output_directory, output_dir, f'example_output_{i}_{"silent" if datapoint["silent"] else "voiced"}_{datapoint["id"]}.wav'),
+            device, testset.mfcc_norm, vocoder)
+    evaluate(testset, os.path.join(FLAGS.output_directory, output_dir))
 
 
 if __name__ == "__main__":
