@@ -248,6 +248,7 @@ def main():
     logging.info(subprocess.run(['git', 'diff'], stdout=subprocess.PIPE, universal_newlines=True).stdout)
 
     logging.info(sys.argv)
+    FLAGS.append_flags_into_file(os.path.join(FLAGS.output_directory, 'log.txt'))
 
     trainset = EMGDataset(dev=False, test=False)
     devset = EMGDataset(dev=True)
