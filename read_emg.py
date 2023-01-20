@@ -34,7 +34,7 @@ flags.DEFINE_string('testset_file', 'testset_dev_open.json', 'file with testset 
 # flags.DEFINE_list('voiced_data_directories', ['./EMG_data/100/20221216/english/closed/voiced'], 'voiced data locations')
 # flags.DEFINE_string('testset_file', 'testset_dev_closed.json', 'file with testset indices')
 flags.DEFINE_string('text_align_directory', './aligner/text_alignmented_war', 'directory with alignment files')
-flags.DEFINE_boolean('exclude_voiced_from_testset', False, "exclude voiced data from testset")
+flags.DEFINE_boolean('fullchan', False, 'indlued all channell')
 
 def remove_drift(signal, fs):
     b, a = scipy.signal.butter(3, 2, 'highpass', fs=fs)
@@ -80,9 +80,10 @@ def load_utterance(base_dir, index, limit_length=False, debug=False, text_align_
     else:
         raw_emg_after = np.zeros([0, raw_emg.shape[1]])
 
-    raw_emg = raw_emg[:, (0, 1, 12, 13, 4, 5, 6, 7)]
-    raw_emg_after = raw_emg_after[:, (0, 1, 12, 13, 4, 5, 6, 7)]
-    raw_emg_before = raw_emg_before[:, (0, 1, 12, 13, 4, 5, 6, 7)]
+    if not FLAGS.fullchan:
+        raw_emg = raw_emg[:, (0, 1, 12, 13, 4, 5, 6, 7)]
+        raw_emg_after = raw_emg_after[:, (0, 1, 12, 13, 4, 5, 6, 7)]
+        raw_emg_before = raw_emg_before[:, (0, 1, 12, 13, 4, 5, 6, 7)]
 
     x = np.concatenate([raw_emg_before, raw_emg, raw_emg_after], 0)
     x = apply_to_all(notch_harmonics, x, 50, 1200)

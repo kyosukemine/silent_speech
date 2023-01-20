@@ -45,9 +45,13 @@ class ResBlock(nn.Module):
 class Model(nn.Module):
     def __init__(self, num_features, num_outs, num_aux_outs=None):
         super().__init__()
-
+        if not FLAGS.fullchan:
+            input_shape = 8
+        else:
+            input_shape = 15
         self.conv_blocks = nn.Sequential(
-            ResBlock(8, FLAGS.model_size, 2),
+            # ResBlock(8, FLAGS.model_size, 2),
+            ResBlock(input_shape, FLAGS.model_size, 2),
             ResBlock(FLAGS.model_size, FLAGS.model_size, 2),
             ResBlock(FLAGS.model_size, FLAGS.model_size, 2),
         )
