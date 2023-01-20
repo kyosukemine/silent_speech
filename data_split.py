@@ -10,6 +10,7 @@ import glob
 
 silent_dirs = glob.glob("./EMG_data/100/**/english/closed/silent/**/*.json")
 silent_dirs = glob.glob("./EMG_data/100/**/kokoro/silent/**/*.json")
+silent_dirs = glob.glob("./EMG_data/100/**/closed/silent/**/*.json")
 book_index_dict = []
 for silent_dir in silent_dirs:
     # print(silent_dir)
@@ -30,5 +31,6 @@ print(output)
 
 # with open("./testset_dev_closed.json", "w") as f:
 # with open("./testset_dev_closed.json", "w") as f:
-with open("./testset_dev_jp_kokoro.json", "w") as f:
+# with open("./testset_dev_jp_kokoro.json", "w") as f:
+with open("./testset_dev_jp_closed.json", "w") as f:
     json.dump(output, f, indent=4)
