@@ -2,7 +2,7 @@ import sys
 import os
 import shutil
 import numpy as np
-
+from tqdm import tqdm
 import soundfile as sf
 import librosa
 
@@ -41,7 +41,7 @@ def main():
     os.makedirs(os.path.join(FLAGS.output_directory, 'mels'), exist_ok=True)
     os.makedirs(os.path.join(FLAGS.output_directory, 'wavs'), exist_ok=True)
 
-    for dataset, name_prefix in [(trainset, 'train'), (devset, 'dev')]:
+    for dataset, name_prefix in tqdm([(trainset, 'train'), (devset, 'dev')]):
         with open(os.path.join(FLAGS.output_directory, f'{name_prefix}_filelist.txt'), 'w') as filelist:
             for i, datapoint in enumerate(dataset):
                 spec = get_aligned_prediction(model, datapoint, device, dataset.mfcc_norm)
