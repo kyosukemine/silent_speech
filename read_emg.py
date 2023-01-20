@@ -34,6 +34,7 @@ flags.DEFINE_string('testset_file', 'testset_dev_open.json', 'file with testset 
 # flags.DEFINE_list('voiced_data_directories', ['./EMG_data/100/20221216/english/closed/voiced'], 'voiced data locations')
 # flags.DEFINE_string('testset_file', 'testset_dev_closed.json', 'file with testset indices')
 flags.DEFINE_string('text_align_directory', './aligner/text_alignmented_war', 'directory with alignment files')
+flags.DEFINE_boolean('include_voiced_from_testset', False, "exclude voiced data from testset")
 flags.DEFINE_boolean('fullchan', False, 'indlued all channell')
 
 def remove_drift(signal, fs):
@@ -191,7 +192,7 @@ class EMGDataset(torch.utils.data.Dataset):
 
             for vd in FLAGS.voiced_data_directories:
                 for session_dir in sorted(os.listdir(vd)):
-                    directories.append(EMGDirectory(len(directories), os.path.join(vd, session_dir), False, exclude_from_testset=FLAGS.exclude_voiced_from_testset))
+                    directories.append(EMGDirectory(len(directories), os.path.join(vd, session_dir), False, exclude_from_testset=not FLAGS.include_voiced_from_testset))
 
         self.example_indices = []
         self.voiced_data_locations = {}  # map from book/sentence_index to directory_info/index
